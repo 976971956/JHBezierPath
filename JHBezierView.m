@@ -64,7 +64,9 @@
 
 @property(nonatomic,assign)CGFloat yMaxValue;//y最大值
 
-@property(nonatomic,assign)BOOL isasdas;
+@property(nonatomic,assign)BOOL isasdas;//是否刷新
+@property(nonatomic,assign)BOOL numType;//是否为值模式
+
 @end
 @implementation JHBezierView
 
@@ -73,7 +75,9 @@
     self.xMax = xmax;
     self.yMin = ymin;
     self.yMax = ymax;
-    [self upData];
+    [self setUpTheDate:nil yMin:self.yMin yMax:self.yMax showDay:30 numType:YES];
+    
+
 }
 
 -(void)upData{
@@ -85,7 +89,8 @@
         NSString *xNumStr = [NSString stringWithFormat:@"%.0f",self.xMin + xValue*i];
         
         [self.xAxisInformationArray addObject:xNumStr];
-        
+        [self.pointXArray addObject:xNumStr];
+
     }
     for (int i = 0; i < self.yMarkNum; i++) {
         NSString *yNumStr = [NSString stringWithFormat:@"%.2f",self.yMin + yValue*i];
@@ -94,7 +99,8 @@
     }
 }
 #pragma mark -  设置x轴标注为日期格式日期
--(void)setUpTheDate:(NSString *)datestr yMin:(CGFloat)ymin yMax:(CGFloat)ymax showDay:(NSInteger)day{
+-(void)setUpTheDate:(NSString *)datestr yMin:(CGFloat)ymin yMax:(CGFloat)ymax showDay:(NSInteger)day numType:(BOOL)type{
+    self.numType = type;
 //    曲线数据
     NSDate *date = [self getPastHafHourTimeDate:datestr Index:0];
     NSInteger count = (day+1)-self.pointYArray.count;
@@ -117,6 +123,7 @@
         }
         [self.pointYArrayAdd addObject:arr];
     }
+    
     datestr = [self stringToDate:date index:day];
     self.xLineNum = day;
 
@@ -149,16 +156,20 @@
 
     [self upData];
 //    getPastHafHourTimeDate
-    [self.xAxisInformationArray removeAllObjects];
-    for (int i = 0; i < self.xMarkNum; i++) {
-         NSDate *date = [self getPastHafHourTimeDate:datestr Index:i*(self.xLineNum/self.xMarkNum)];
-        NSString *xNumStr = [self dateToStringDate:date formatType:@"MMdd"];
-        [self.xAxisInformationArray addObject:xNumStr];
-    }
-    for (int i = 0; i < self.xLineNum+1; i++) {
-        NSDate *date = [self getPastHafHourTimeDate:datestr Index:i];
-        NSString *xNumStr = [self dateToStringDate:date formatType:@"yyyy.MM.dd"];
-        [self.pointXArray addObject:xNumStr];
+    if (type) {
+        
+    }else{
+        [self.xAxisInformationArray removeAllObjects];
+        for (int i = 0; i < self.xMarkNum; i++) {
+             NSDate *date = [self getPastHafHourTimeDate:datestr Index:i*(self.xLineNum/self.xMarkNum)];
+            NSString *xNumStr = [self dateToStringDate:date formatType:@"MMdd"];
+            [self.xAxisInformationArray addObject:xNumStr];
+        }
+        for (int i = 0; i < self.xLineNum+1; i++) {
+            NSDate *date = [self getPastHafHourTimeDate:datestr Index:i];
+            NSString *xNumStr = [self dateToStringDate:date formatType:@"yyyy.MM.dd"];
+            [self.pointXArray addObject:xNumStr];
+        }
     }
 //    取y最大值
     //    取y最大值
@@ -618,20 +629,20 @@
     }
     //泡泡PopView
     if (!self.popView) {
-        self.popView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 100, self.popHeight)];
+        self.popView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 100, self.popHeight*2)];
         self.popView.backgroundColor = RGBA(0, 177, 11, 1);
         self.popView.layer.cornerRadius = 4;
         self.popView.layer.masksToBounds = YES;
         [self.bgView addSubview:self.popView];
 
-        self.textLab = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 100, self.popHeight/2)];
+        self.textLab = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 100, self.popView.frame.size.height/2)];
         self.textLab.textColor = [UIColor whiteColor];
         self.textLab.font = [UIFont systemFontOfSize:10 weight:1];
         self.textLab.textAlignment = NSTextAlignmentCenter;
         self.textLab.text = @"0";
         [self.popView addSubview:self.textLab];
         
-        self.textLab1 = [[UILabel alloc]initWithFrame:CGRectMake(0, 20, 100, self.popHeight/2)];
+        self.textLab1 = [[UILabel alloc]initWithFrame:CGRectMake(0, self.popView.frame.size.height/2, 100, self.popView.frame.size.height/2)];
         self.textLab1.textColor = [UIColor whiteColor];
         self.textLab1.font = [UIFont systemFontOfSize:10 weight:1];
         self.textLab1.textAlignment = NSTextAlignmentCenter;
@@ -649,7 +660,7 @@
     CGFloat floatValueX = (self.xMin + index * xValue);
     CGPoint apoint = [self pointCoordinateTransformation:CGPointMake(index*self.xAxisSpacing,self.viewHeight*((floatValueY - self.yMin)/(self.yMax - self.yMin)))];
     self.textLab.text = [NSString stringWithFormat:@"值:%.1f",[self.pointYArray[index] floatValue]];
-    if (!self.pointXArray||self.pointXArray.count<=0) {
+    if (!self.pointXArray||self.pointXArray.count<=0||self.numType) {
         self.textLab1.text = [NSString stringWithFormat:@"X:%.2f",floatValueX];
     }else{
         self.textLab1.text = [NSString stringWithFormat:@"日期:%@",self.pointXArray[index]];
@@ -668,7 +679,7 @@
 //        xNum = self.xAxisToViewPadding;
 //    }
     self.smailRound.center = CGPointMake(apoint.x+0, apoint.y);
-    self.popView.center = CGPointMake(apoint.x+0, self.popHeight/2);
+    self.popView.center = CGPointMake(apoint.x+0, self.popView.frame.size.height/2);
     [self bringSubviewToFront:self.bgView];
 }
 
@@ -767,7 +778,7 @@
     }
     
 //    self.textLab.text = [NSString stringWithFormat:@"值:%.1f",[self.pointYArray[index] floatValue]];
-    if (!self.pointXArray||self.pointXArray.count<=0) {
+    if (!self.pointXArray||self.pointXArray.count<=0||self.numType) {
         self.textLab.text = [NSString stringWithFormat:@"%.2f元 X:%.2f",[self.pointYArray[index] floatValue],floatValueX];
     }else{
         NSString *textStr = [NSString stringWithFormat:@"%.2f元 %@",[self.pointYArray[index] floatValue],self.pointXArray[index]];
@@ -943,4 +954,17 @@
 }
 
 
+@end
+@interface JHBezierBgView ()
+@end
+
+@implementation JHBezierBgView
+-(instancetype)initWithFrame:(CGRect)frame{
+    if ([super initWithFrame:frame]) {
+        self.bezier = [[JHBezierView alloc]initWithFrame:CGRectMake(0, 20, frame.size.width-20, frame.size.height-20)];
+        self.bezier.backgroundColor = self.backgroundColor;
+        [self addSubview:self.bezier];
+    }
+    return self;
+}
 @end

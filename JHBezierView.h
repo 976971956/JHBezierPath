@@ -73,8 +73,9 @@ typedef NS_ENUM(NSInteger, BezierLineType) {
  @param ymin y最小值
  @param ymax y最大值
  @param day 数值必须为5的整数倍
+ @param type 是否为值模式
  */
--(void)setUpTheDate:(NSString *)datestr yMin:(CGFloat)ymin yMax:(CGFloat)ymax showDay:(NSInteger)day;
+-(void)setUpTheDate:(NSString *)datestr yMin:(CGFloat)ymin yMax:(CGFloat)ymax showDay:(NSInteger)day numType:(BOOL)type;
 
 //=====================================================================================================================
 
@@ -86,4 +87,7 @@ typedef NS_ENUM(NSInteger, BezierLineType) {
  @return date回倒天数的时间
  */
 -(NSString *)stringToDate:(NSDate *)date index:(NSInteger)index;
+@end
+@interface JHBezierBgView : UIView
+@property (nonatomic,strong)JHBezierView *bezier;
 @end
