@@ -1,6 +1,8 @@
 # JHBezierPath
 贝塞尔曲线工具类
+\n
 ![图片](https://github.com/976971956/JHBezierPath/blob/master/tu.gif)
+\n
 安装方法：
   1.cocosPod安装
     platform :ios, '8.0'
