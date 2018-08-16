@@ -11,6 +11,8 @@
       target 'projectName’ do
       pod 'JHBezierPath'
     end
+    
+    
    2.手动集成
       下载代码->将JHBezierPath.h和JHBezierPath.m导入即可
       
