@@ -6,6 +6,7 @@
 
 
 安装方法：
+
   1.cocosPod安装
     platform :ios, '8.0'
       target 'projectName’ do
