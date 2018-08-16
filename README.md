@@ -8,10 +8,10 @@
 <br>安装方法：\<br>
 
  <br> 1.cocosPod安装\<br>
-   <br> platform :ios, '8.0'\<br>
-      <br>target 'projectName’ do\<br>
-      <br>pod 'JHBezierPath'\<br>
-   <br> end \<br>
+   platform :ios, '8.0'\
+      target 'projectName’ do\
+      pod 'JHBezierPath'\
+   end \
    2.手动集成
       下载代码->将JHBezierPath.h和JHBezierPath.m导入即可
       
