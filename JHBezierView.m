@@ -16,6 +16,8 @@
 #define Clearance_Num 3 //外框间隙
 @interface JHBezierView()
 
+@property(nonatomic,assign)CGFloat clearanceNum;//外框间隙
+
 @property(nonatomic,assign)CGFloat xMarkNum;//x标注个数
 @property(nonatomic,assign)CGFloat xLineNum;//x轴网格数 至少是self.xMarkNum的整数倍 并 是self.xMarkNum的整数倍，不然网格会对不上标注
 @property(nonatomic,assign)CGFloat yMarkNum;//Y标注个数
@@ -76,13 +78,12 @@
     self.yMin = ymin;
     self.yMax = ymax;
     [self setUpTheDate:nil yMin:self.yMin yMax:self.yMax showDay:30 numType:YES];
-    
-
 }
 
 -(void)upData{
     [self.xAxisInformationArray removeAllObjects];
     [self.yAxisInformationArray removeAllObjects];
+    [self.pointXArray removeAllObjects];
     CGFloat xValue = (self.xMax - self.xMin)/self.xMarkNum;
     CGFloat yValue = (self.yMax - self.yMin)/self.yMarkNum;
     for (int i = 0; i < self.xMarkNum; i++) {
@@ -137,19 +138,29 @@
     }
     CGSize informationSize = [self getTextSizeWithText:[NSString stringWithFormat:@"%.2f",ymax] fontSize:self.fontSize maxSize:CGSizeMake(MAXFLOAT, self.fontSize)];
     self.xAxisToViewPadding = 16+informationSize.width;
-    self.viewWeidth = CGRectGetWidth(self.frame)-self.xAxisToViewPadding-Clearance_Num*2;
+    if (self.graphicsType == ColumnGraphicsType) {
+        self.clearanceNum = (self.viewWeidth / (self.xLineNum+1))/2*1.2;
+    }
+
+    self.viewWeidth = CGRectGetWidth(self.frame)-self.xAxisToViewPadding-self.clearanceNum*2;
     self.xAxisSpacing = self.viewWeidth / self.xLineNum;
     self.xAxisSpacings = self.viewWeidth / self.xMarkNum;
     self.yAxisSpacing = self.viewHeight / self.yLineNum;
     self.yAxisSpacings = self.viewHeight / self.yMarkNum;
 
+
     CGFloat xNum = 0;
     if (self.leftRight == BezierViewLeftType) {
         xNum = self.xAxisToViewPadding;
     }
-    self.bgView1.frame = CGRectMake(self.xAxisToViewPadding, self.bgView.frame.origin.y, self.viewWeidth+Clearance_Num*2, self.viewHeight+Clearance_Num*2);
-    self.bgView.frame = CGRectMake(Clearance_Num, Clearance_Num, self.viewWeidth, self.viewHeight);
-    self.beforeView.frame = CGRectMake(Clearance_Num, Clearance_Num, self.viewWeidth, self.viewHeight);
+    self.bgView1.frame = CGRectMake(self.xAxisToViewPadding, self.bgView.frame.origin.y, self.viewWeidth+self.clearanceNum*2, self.viewHeight+self.clearanceNum*2);
+    self.bgView.frame = CGRectMake(self.clearanceNum, self.clearanceNum, self.viewWeidth, self.viewHeight);
+    self.beforeView.frame = CGRectMake(self.clearanceNum, self.clearanceNum, self.viewWeidth, self.viewHeight);
+    if (self.graphicsType == ColumnGraphicsType) {
+        self.bgView1.frame = CGRectMake(self.xAxisToViewPadding, 0, self.viewWeidth+self.clearanceNum*2, self.viewHeight+3*2);
+        self.bgView.frame = CGRectMake(self.clearanceNum, 3, self.viewWeidth, self.viewHeight);
+        self.beforeView.frame = CGRectMake(self.clearanceNum, 3, self.viewWeidth, self.viewHeight);
+    }
     self.beforeView.hidden = NO;
     [self addGrid:self.bgView];
     [self addGrid:self.beforeView];
@@ -160,6 +171,7 @@
         
     }else{
         [self.xAxisInformationArray removeAllObjects];
+        [self.pointXArray removeAllObjects];
         for (int i = 0; i < self.xMarkNum; i++) {
              NSDate *date = [self getPastHafHourTimeDate:datestr Index:i*(self.xLineNum/self.xMarkNum)];
             NSString *xNumStr = [self dateToStringDate:date formatType:@"MMdd"];
@@ -197,6 +209,7 @@
 #pragma mark - 初始化
 - (instancetype)initWithFrame:(CGRect)frame{
     if (self = [super initWithFrame:frame]) {
+        self.clearanceNum = 3;
         self.xLineNum = 10;
         self.yLineNum = 7;
         self.xMarkNum = 5;
@@ -217,11 +230,12 @@
         self.fontSize = 11;
         self.leftRight = BezierViewLeftType;
         self.topBottom = BezierViewBottonType;
+        self.graphicsType = CurveGraphicsType;//默认曲线图
         self.xAxisToViewPadding = 45;
         self.yAxisToViewPadding = 40;
 
-        self.viewWeidth = CGRectGetWidth(self.frame)-self.xAxisToViewPadding-Clearance_Num*2;
-        self.viewHeight = CGRectGetHeight(self.frame)-self.yAxisToViewPadding-Clearance_Num*2;
+        self.viewWeidth = CGRectGetWidth(self.frame)-self.xAxisToViewPadding-self.clearanceNum*2;
+        self.viewHeight = CGRectGetHeight(self.frame)-self.yAxisToViewPadding-self.clearanceNum*2;
         
         self.xAxisInformationArray =[NSMutableArray array];
         self.yAxisInformationArray = [NSMutableArray array];
@@ -253,16 +267,16 @@
         if (self.leftRight == BezierViewLeftType) {
             xNum = self.xAxisToViewPadding;
         }
-        self.bgView1 = [[UIView alloc]initWithFrame:CGRectMake(xNum, 0, self.viewWeidth+Clearance_Num*2, self.viewHeight+Clearance_Num*2)];
+        self.bgView1 = [[UIView alloc]initWithFrame:CGRectMake(xNum, 0, self.viewWeidth+self.clearanceNum*2, self.viewHeight+self.clearanceNum*2)];
 //        self.bgView1.backgroundColor = [UIColor yellowColor];
         
         [self addSubview:self.bgView1];
-        self.bgView = [[UIView alloc]initWithFrame:CGRectMake(Clearance_Num, Clearance_Num, self.viewWeidth, self.viewHeight)];
+        self.bgView = [[UIView alloc]initWithFrame:CGRectMake(self.clearanceNum, self.clearanceNum, self.viewWeidth, self.viewHeight)];
 //        self.bgView.backgroundColor = [UIColor grayColor];
         [self.bgView1 addSubview:self.bgView];
 //        [self addGrid:self.bgView];
         
-        self.beforeView = [[UIView alloc]initWithFrame:CGRectMake(Clearance_Num, Clearance_Num, self.viewWeidth, self.viewHeight)];
+        self.beforeView = [[UIView alloc]initWithFrame:CGRectMake(self.clearanceNum, self.clearanceNum, self.viewWeidth, self.viewHeight)];
         self.beforeView.backgroundColor = RGBA(28, 43, 70, 1);
         self.beforeView.layer.masksToBounds = YES;
         [self.bgView1 addSubview:self.beforeView];
@@ -276,8 +290,12 @@
 }
 #pragma mark - 添加网格线
 - (void)addGrid:(UIView *)view {
+    
     CGFloat widthView = view.frame.size.width;
     CGFloat heightView = view.frame.size.height;
+    if (self.graphicsType == ColumnGraphicsType) {
+        widthView += self.clearanceNum*2-8;
+    }
 //    CGFloat xsize = (widthView - 0.5)/self.xLineNum;
     CGFloat ysize = (heightView - 0.5)/self.yLineNum;
 
@@ -297,8 +315,11 @@
                 continue;
             }
         }
-  
-        addLineWidthRect(CGRectMake(0, i, widthView, 0.5));
+        if (self.graphicsType == ColumnGraphicsType) {
+            addLineWidthRect(CGRectMake(-self.clearanceNum+4, i, widthView, 0.5));
+        }else{
+            addLineWidthRect(CGRectMake(0, i, widthView, 0.5));
+        }
     }
 }
 
@@ -323,7 +344,7 @@
             drawStartPointX = self.xAxisToViewPadding + idx * self.xAxisSpacings;
         }
         CGFloat drawStartPointY = self.viewHeight + (self.yAxisToViewPadding - informationSize.height) / 2.0;
-        CGPoint drawStartPoint = CGPointMake(drawStartPointX+Clearance_Num, drawStartPointY);
+        CGPoint drawStartPoint = CGPointMake(drawStartPointX+self.clearanceNum, drawStartPointY);
         // 绘制文字信息
         [obj drawAtPoint:drawStartPoint withAttributes:attributes];
     }];
@@ -350,7 +371,10 @@
                 }
                 float drawStartPointY = CGRectGetHeight(self.frame) - self.yAxisToViewPadding - idx * self.yAxisSpacings - self.fontSize;
                 
-                CGPoint drawStartPoint = CGPointMake(drawStartPointX, drawStartPointY-Clearance_Num);
+                CGPoint drawStartPoint = CGPointMake(drawStartPointX, drawStartPointY-self.clearanceNum);
+                if (self.graphicsType == ColumnGraphicsType) {
+                    drawStartPoint = CGPointMake(drawStartPointX, drawStartPointY-3);
+                }
                 // 绘制文字信息
                 [obj drawAtPoint:drawStartPoint withAttributes:attributes];
             }
@@ -371,7 +395,10 @@
             }
             float drawStartPointY = CGRectGetHeight(self.frame) - self.yAxisToViewPadding - idx * self.yAxisSpacings - self.fontSize;
             
-            CGPoint drawStartPoint = CGPointMake(drawStartPointX, drawStartPointY-Clearance_Num);
+            CGPoint drawStartPoint = CGPointMake(drawStartPointX, drawStartPointY-self.clearanceNum);
+            if (self.graphicsType == ColumnGraphicsType) {
+                drawStartPoint = CGPointMake(drawStartPointX, drawStartPointY-3);
+            }
             // 绘制文字信息
             [obj drawAtPoint:drawStartPoint withAttributes:attributes];
         }
@@ -399,16 +426,30 @@
             NSValue *endPointValue = [NSValue valueWithCGPoint:CGPointMake(self.viewWeidth,self.viewHeight)];
             [self.pointsArray addObject:endPointValue];
             UIBezierPath *path = [UIBezierPath bezierPath];
-            /** 折线路径 */
-            for (NSInteger i = 0; i < self.pointsArray.count-3; i++) {
-                CGPoint p1 = [[self.pointsArray objectAtIndex:i] CGPointValue];
-                CGPoint p2 = [[self.pointsArray objectAtIndex:i+1] CGPointValue];
-                CGPoint p3 = [[self.pointsArray objectAtIndex:i+2] CGPointValue];
-                CGPoint p4 = [[self.pointsArray objectAtIndex:i+3] CGPointValue];
-                if (i == 0) {
-                    [path moveToPoint:p2];
+            if (self.graphicsType == ColumnGraphicsType) {
+                
+                //    柱形图
+                for (NSInteger i = 0; i < self.pointsArray.count; i++) {
+                    CGPoint p1 = [[self.pointsArray objectAtIndex:i] CGPointValue];
+                    CGPoint p2 = CGPointMake(p1.x, self.viewHeight);
+                    if (p1.y==p2.y) {
+                        p2 = CGPointMake(p1.x, self.viewHeight-1);
+                    }
+                    [path moveToPoint:p1];
+                    [path addLineToPoint:p2];
                 }
-                [self getControlPointx0:p1.x andy0:p1.y x1:p2.x andy1:p2.y x2:p3.x andy2:p3.y x3:p4.x andy3:p4.y path:path];
+            }else if (self.graphicsType == CurveGraphicsType){
+                /** 曲线路径 */
+                for (NSInteger i = 0; i < self.pointsArray.count-3; i++) {
+                    CGPoint p1 = [[self.pointsArray objectAtIndex:i] CGPointValue];
+                    CGPoint p2 = [[self.pointsArray objectAtIndex:i+1] CGPointValue];
+                    CGPoint p3 = [[self.pointsArray objectAtIndex:i+2] CGPointValue];
+                    CGPoint p4 = [[self.pointsArray objectAtIndex:i+3] CGPointValue];
+                    if (i == 0) {
+                        [path moveToPoint:p2];
+                    }
+                    [self getControlPointx0:p1.x andy0:p1.y x1:p2.x andy1:p2.y x2:p3.x andy2:p3.y x3:p4.x andy3:p4.y path:path];
+                }
             }
             /** 将折线添加到折线图层上，并设置相关的属性 */
             CAShapeLayer *bezierLineLayer = [CAShapeLayer layer];
@@ -435,6 +476,12 @@
             bezierLineLayer.lineCap = kCALineCapSquare;
             bezierLineLayer.lineJoin = kCALineJoinBevel;
             bezierLineLayer.masksToBounds = YES;
+            if (self.graphicsType == ColumnGraphicsType) {
+                CGFloat weight = self.clearanceNum;
+                bezierLineLayer.lineWidth = weight;
+                bezierLineLayer.lineCap = kCALineCapButt;
+                bezierLineLayer.masksToBounds = NO;
+            }
             // 颜色渐变CAGradientLayer
             if (self.isMask) {
                 UIColor *topGradientColor = RGBA(R, G, B, 1);
@@ -467,17 +514,32 @@
     NSValue *endPointValue = [NSValue valueWithCGPoint:CGPointMake(self.viewWeidth,self.viewHeight)];
     [self.pointsArray addObject:endPointValue];
     UIBezierPath *path = [UIBezierPath bezierPath];
-    /** 折线路径 */
-    for (NSInteger i = 0; i < self.pointsArray.count-3; i++) {
-        CGPoint p1 = [[self.pointsArray objectAtIndex:i] CGPointValue];
-        CGPoint p2 = [[self.pointsArray objectAtIndex:i+1] CGPointValue];
-        CGPoint p3 = [[self.pointsArray objectAtIndex:i+2] CGPointValue];
-        CGPoint p4 = [[self.pointsArray objectAtIndex:i+3] CGPointValue];
-        if (i == 0) {
-            [path moveToPoint:p2];
+    if (self.graphicsType == ColumnGraphicsType) {
+
+        //    柱形图
+        for (NSInteger i = 0; i < self.pointsArray.count; i++) {
+            CGPoint p1 = [[self.pointsArray objectAtIndex:i] CGPointValue];
+            CGPoint p2 = CGPointMake(p1.x, self.viewHeight);
+            if (p1.y==p2.y) {
+                p2 = CGPointMake(p1.x, self.viewHeight-1);
+            }
+            [path moveToPoint:p1];
+            [path addLineToPoint:p2];
         }
-        [self getControlPointx0:p1.x andy0:p1.y x1:p2.x andy1:p2.y x2:p3.x andy2:p3.y x3:p4.x andy3:p4.y path:path];
+    }else if (self.graphicsType == CurveGraphicsType){
+        /** 曲线路径 */
+        for (NSInteger i = 0; i < self.pointsArray.count-3; i++) {
+            CGPoint p1 = [[self.pointsArray objectAtIndex:i] CGPointValue];
+            CGPoint p2 = [[self.pointsArray objectAtIndex:i+1] CGPointValue];
+            CGPoint p3 = [[self.pointsArray objectAtIndex:i+2] CGPointValue];
+            CGPoint p4 = [[self.pointsArray objectAtIndex:i+3] CGPointValue];
+            if (i == 0) {
+                [path moveToPoint:p2];
+            }
+            [self getControlPointx0:p1.x andy0:p1.y x1:p2.x andy1:p2.y x2:p3.x andy2:p3.y x3:p4.x andy3:p4.y path:path];
+        }
     }
+ 
 
     /** 将折线添加到折线图层上，并设置相关的属性 */
     self.bezierLineLayer = [CAShapeLayer layer];
@@ -486,7 +548,6 @@
         self.bezierLineLayer.frame = CGRectMake(0, 0, self.viewWeidth, self.viewHeight);
     }
     self.bezierLineLayer.path = path.CGPath;
-    
     if (self.showLine) {
         //     显示曲线
         self.bezierLineLayer.strokeColor = self.lineColor.CGColor;
@@ -502,6 +563,13 @@
     self.bezierLineLayer.lineCap = kCALineCapSquare;
     self.bezierLineLayer.lineJoin = kCALineJoinBevel;
     self.bezierLineLayer.masksToBounds = YES;
+    
+    if (self.graphicsType == ColumnGraphicsType) {
+        CGFloat weight = self.clearanceNum;
+        self.bezierLineLayer.lineWidth = weight;
+        self.bezierLineLayer.lineCap = kCALineCapButt;
+        self.bezierLineLayer.masksToBounds = NO;
+    }
     // 颜色渐变CAGradientLayer
     if (self.isMask) {
 //        UIColor *topGradientColor = RGBA(87, 240, 187, 1);
@@ -527,9 +595,13 @@
         xNum = self.xAxisToViewPadding;
     }
 
+    if (self.graphicsType == ColumnGraphicsType) {
+        self.beforeView.hidden = YES;
+        return;
+    }
     [UIView animateWithDuration:1.0 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         if (self.isMask||self.showLine) {
-            self.beforeView.frame = CGRectMake(self.viewWeidth+Clearance_Num, Clearance_Num, 0, self.viewHeight);
+            self.beforeView.frame = CGRectMake(self.viewWeidth+self.clearanceNum, self.clearanceNum, 0, self.viewHeight);
         }
 
     } completion:^(BOOL finished) {
@@ -843,7 +915,7 @@
                        x2:(CGFloat)x2 andy2:(CGFloat)y2
                        x3:(CGFloat)x3 andy3:(CGFloat)y3
                      path:(UIBezierPath*) path{
-    CGFloat smooth_value =0.6;
+    CGFloat smooth_value =0.8;
     CGFloat ctrl1_x;
     CGFloat ctrl1_y;
     CGFloat ctrl2_x;

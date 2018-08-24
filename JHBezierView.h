@@ -27,6 +27,11 @@ typedef NS_ENUM(NSInteger, BezierLineType) {
     DottedBrokenLineType,//虚折线
     DottedCurveLineType,//虚曲线
 };
+typedef NS_ENUM(NSInteger, BezierGraphicsType) {
+    ColumnGraphicsType,//柱形图
+    CurveGraphicsType,//曲线图
+
+};
 @interface JHBezierView : UIView
 @property(nonatomic,strong)NSMutableArray *pointYArray;//y值波动值
 @property(nonatomic,strong)NSMutableArray *pointXArray;//y值波动值
@@ -34,6 +39,8 @@ typedef NS_ENUM(NSInteger, BezierLineType) {
 
 //曲线类型
 @property(nonatomic,assign) BezierLineType lineType;
+//图形类型
+@property(nonatomic,assign) BezierGraphicsType graphicsType;
 //是否需要遮罩 默认有遮罩
 @property(nonatomic,assign) BOOL isMask;
 //是否显示曲线
@@ -52,6 +59,7 @@ typedef NS_ENUM(NSInteger, BezierLineType) {
 
 //全部价格相等
 @property(nonatomic,assign) BOOL isAllEqual;
+
 
 //=====================================================================================================================
 
